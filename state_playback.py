@@ -31,10 +31,10 @@ if __name__ == '__main__':
     poses = poses_object["poses"]
     durations = poses_object["durations"]
 
-    for pose in poses:
+    for idx, pose in enumerate(poses):
 
         move_group.moveToJointPosition(joint_names, pose, wait=True)
-        #rospy.sleep(durations) # need to do this somehow. is this what enum is for?
+        rospy.sleep(durations[idx])
 
     move_group.get_move_action().cancel_all_goals()
     
