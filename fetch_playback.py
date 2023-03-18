@@ -17,9 +17,6 @@ def add_a_pose(pose_list, time_list):
     move_group = moveit_commander.MoveGroupCommander(group_name)
     # arr holding unrounded values of joint angles returned from get_current_joint_values
     joints_arr = move_group.get_current_joint_values()
-    #for joint_angle in joints_arr:
-    #    pose.append(round(joint_angle, 3))
-    #    pose_list.append(pose)
     pose_list.append(joints_arr)
     print("\nEnter how long you would like to hold this pose for\n")
     pose_dur = input("Time in seconds: ")
