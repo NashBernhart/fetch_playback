@@ -9,12 +9,9 @@ from moveit_commander.conversions import pose_to_list
 import moveit_msgs.msg
 from sensor_msgs.msg import JointState
 
-def add_a_pose(pose_list, time_list):
+def add_a_pose(pose_list, time_list, move_group):
     # arr to hold rounded values of joint angles
     pose = []
-    # create movegroupcommander object
-    group_name = "arm_with_torso"
-    move_group = moveit_commander.MoveGroupCommander(group_name)
     # arr holding unrounded values of joint angles returned from get_current_joint_values
     joints_arr = move_group.get_current_joint_values()
     pose_list.append(joints_arr)
@@ -24,13 +21,15 @@ def add_a_pose(pose_list, time_list):
 
 def save_movement(pose_list, time_list):
     rospy.loginfo('writing to file')
-    #file_name = input('name your movement file: ')
+    #file_name = "placeholder"
+    file_name = raw_input('\nname your movement file: ')
+    print(file_name)
     dictionary = {
         "poses": pose_list,
         "durations": time_list
     }
     json_object = json.dumps(dictionary, indent=4)
-    with open("output.json", 'w') as outfile:
+    with open(file_name + '.json', 'w') as outfile:
         outfile.write(json_object)
 
 def playback():
@@ -41,7 +40,8 @@ def playback():
                    "elbow_flex_joint", "forearm_roll_joint",
                    "wrist_flex_joint", "wrist_roll_joint"]
     #open the file to be read from and load into json object
-    with open('output.json') as user_file:
+    file_name = raw_input('\nEnter the name of the movement file you wish to replay: ')
+    with open(file_name + '.json') as user_file:
         poses_object = json.load(user_file)
     # get the arrays of poses to move to and times to hold
     poses = poses_object["poses"]
@@ -82,11 +82,14 @@ if __name__ == '__main__':
             # pose_arr is an array of arrays where each sub array is a pose. duration array is how long to hold each pose
             pose_arr = []
             duration_arr =[]
+            # create movegroupcommander object
+            group_name = "arm_with_torso"
+            move_group = moveit_commander.MoveGroupCommander(group_name)
             while(True):
-                print("\nEnter 1 to save a pose in the movement. Enter 2 to finish and save the movement to a file.\nEnter 3 to quit without saving the movement\n")
+                print("\nEnter 1 to save a pose in the movement.\n Enter 2 to finish and save the movement to a file.\nEnter 3 to quit without saving the movement\n")
                 pose_selection = input("Selection: ")
                 if pose_selection == 1:
-                    add_a_pose(pose_arr, duration_arr)
+                    add_a_pose(pose_arr, duration_arr, move_group)
                 elif pose_selection == 2:
                     save_movement(pose_arr, duration_arr)
                     break
