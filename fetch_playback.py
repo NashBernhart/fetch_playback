@@ -85,6 +85,8 @@ if __name__ == '__main__':
             # create movegroupcommander object
             group_name = "arm_with_torso"
             move_group = moveit_commander.MoveGroupCommander(group_name)
+            gripper_group_name = "gripper"
+            gripper_group = moveit_commander.MoveGroupCommander(gripper_group_name)
             while(True):
                 print("\nEnter 1 to save a pose in the movement.\n Enter 2 to finish and save the movement to a file.\nEnter 3 to quit without saving the movement\n")
                 pose_selection = input("Selection: ")
