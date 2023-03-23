@@ -9,23 +9,26 @@ from moveit_commander.conversions import pose_to_list
 import moveit_msgs.msg
 from sensor_msgs.msg import JointState
 
-def add_a_pose(pose_list, time_list, move_group):
+def add_a_pose(pose_list, time_list, gripper_list, move_group, gripper_group):
     # arr to hold rounded values of joint angles
-    pose = []
+    #pose = []
+    #gripper = []
     # arr holding unrounded values of joint angles returned from get_current_joint_values
     joints_arr = move_group.get_current_joint_values()
     pose_list.append(joints_arr)
+    gripper_list.append(gripper_group.get_current_joint_values())
     print("\nEnter how long you would like to hold this pose for\n")
     pose_dur = input("Time in seconds: ")
     time_list.append(pose_dur)
 
-def save_movement(pose_list, time_list):
+def save_movement(pose_list, time_list, gripper_list):
     rospy.loginfo('writing to file')
     #file_name = "placeholder"
     file_name = raw_input('\nname your movement file: ')
     print(file_name)
     dictionary = {
         "poses": pose_list,
+        "gripper": gripper_list,
         "durations": time_list
     }
     json_object = json.dumps(dictionary, indent=4)
@@ -34,21 +37,26 @@ def save_movement(pose_list, time_list):
 
 def playback():
     move_group = MoveGroupInterface("arm_with_torso", "base_link")
+    gripper_group = MoveGroupInterface("gripper", "base_link")
     # create the joint names arr
     joint_names = ["torso_lift_joint", "shoulder_pan_joint",
                    "shoulder_lift_joint", "upperarm_roll_joint",
                    "elbow_flex_joint", "forearm_roll_joint",
                    "wrist_flex_joint", "wrist_roll_joint"]
+    gripper_names = ["l_gripper_finger_joint", 
+                     "r_gripper_finger_joint"]
     #open the file to be read from and load into json object
     file_name = raw_input('\nEnter the name of the movement file you wish to replay: ')
     with open(file_name + '.json') as user_file:
         poses_object = json.load(user_file)
     # get the arrays of poses to move to and times to hold
     poses = poses_object["poses"]
+    gripper_poses = poses_object["gripper"]
     durations = poses_object["durations"]
     # perform the actions
     for idx, pose in enumerate(poses):
         move_group.moveToJointPosition(joint_names, pose, wait=True)
+        gripper_group.moveToJointPosition(gripper_names, gripper_poses[idx], wait=True)
         rospy.sleep(durations[idx])
     # finished. cancel all movements
     move_group.get_move_action().cancel_all_goals()
@@ -81,19 +89,21 @@ if __name__ == '__main__':
             # init the two arrays that will be used to store the movement
             # pose_arr is an array of arrays where each sub array is a pose. duration array is how long to hold each pose
             pose_arr = []
+            gripper_arr = []
             duration_arr =[]
             # create movegroupcommander object
             group_name = "arm_with_torso"
             move_group = moveit_commander.MoveGroupCommander(group_name)
             gripper_group_name = "gripper"
             gripper_group = moveit_commander.MoveGroupCommander(gripper_group_name)
+            #print(gripper_group.get_current_joint_values())
             while(True):
                 print("\nEnter 1 to save a pose in the movement.\n Enter 2 to finish and save the movement to a file.\nEnter 3 to quit without saving the movement\n")
                 pose_selection = input("Selection: ")
                 if pose_selection == 1:
-                    add_a_pose(pose_arr, duration_arr, move_group)
+                    add_a_pose(pose_arr, duration_arr, gripper_arr, move_group, gripper_group)
                 elif pose_selection == 2:
-                    save_movement(pose_arr, duration_arr)
+                    save_movement(pose_arr, duration_arr, gripper_arr)
                     break
                 elif pose_selection == 3:
                     break
