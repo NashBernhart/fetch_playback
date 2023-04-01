@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import signal
+import time
 import rospy
 import json
 from moveit_msgs.msg import MoveItErrorCodes
@@ -9,24 +11,21 @@ from moveit_commander.conversions import pose_to_list
 import moveit_msgs.msg
 from sensor_msgs.msg import JointState
 
-def add_a_pose(pose_list, time_list, move_group):
-    # arr to hold rounded values of joint angles
-    pose = []
-    # arr holding unrounded values of joint angles returned from get_current_joint_values
-    joints_arr = move_group.get_current_joint_values()
-    pose_list.append(joints_arr)
-    print("\nEnter how long you would like to hold this pose for\n")
-    pose_dur = input("Time in seconds: ")
-    time_list.append(pose_dur)
+def signal_handler(signal, frame):
+    global interrupted
+    interrupted = True
 
-def save_movement(pose_list, time_list):
+signal.signal(signal.SIGINT, signal_handler)
+
+interrupted = False
+
+def save_movement(pose_list, time_in_seconds):
     rospy.loginfo('writing to file')
     #file_name = "placeholder"
     file_name = raw_input('\nname your movement file: ')
-    print(file_name)
     dictionary = {
         "poses": pose_list,
-        "durations": time_list
+        "sampling_rate": time_in_seconds
     }
     json_object = json.dumps(dictionary, indent=4)
     with open(file_name + '.json', 'w') as outfile:
@@ -45,11 +44,11 @@ def playback():
         poses_object = json.load(user_file)
     # get the arrays of poses to move to and times to hold
     poses = poses_object["poses"]
-    durations = poses_object["durations"]
+    sampling_rate = poses_object["sampling_rate"]
     # perform the actions
     for idx, pose in enumerate(poses):
-        move_group.moveToJointPosition(joint_names, pose, wait=True)
-        rospy.sleep(durations[idx])
+        move_group.moveToJointPosition(joint_names, pose, wait=False)
+        rospy.sleep(sampling_rate)
     # finished. cancel all movements
     move_group.get_move_action().cancel_all_goals()
 
@@ -82,25 +81,25 @@ if __name__ == '__main__':
             # init the two arrays that will be used to store the movement
             # pose_arr is an array of arrays where each sub array is a pose. duration array is how long to hold each pose
             pose_arr = []
-            duration_arr =[]
-            # create movegroupcommander object
             group_name = "arm_with_torso"
             move_group = moveit_commander.MoveGroupCommander(group_name)
-            gripper_group_name = "gripper"
-            gripper_group = moveit_commander.MoveGroupCommander(gripper_group_name)
-            while(True):
-                print("\nEnter 1 to save a pose in the movement.\n Enter 2 to finish and save the movement to a file.\nEnter 3 to quit without saving the movement\n")
-                pose_selection = input("Selection: ")
-                if pose_selection == 1:
-                    add_a_pose(pose_arr, duration_arr, move_group)
-                elif pose_selection == 2:
-                    save_movement(pose_arr, duration_arr)
-                    break
-                elif pose_selection == 3:
-                    break
-                else:
-                    print("Invalid selection. Choose 1 or 2\n")
+            sampling_rate = input("Enter your sampling rate in Hz: ")
+            rate_in_seconds = 1 / sampling_rate
 
+            print("\nRecording movement...\n")
+            print("\nPress ctrl+c to stop recording and save to file\n")
+            while(True) :
+                # Save a movement at defined rate
+                joints_arr = move_group.get_current_joint_values()
+                pose_arr.append(joints_arr)
+                time.sleep(rate_in_seconds)
+
+                #
+                if interrupted:
+                    print("\nSaving movement...\n")
+                    save_movement(pose_arr, rate_in_seconds)
+                    break
+            
         # play back a movement from file
         elif control_selection == 2:
             playback()
