@@ -47,7 +47,7 @@ def playback():
     sampling_rate = poses_object["sampling_rate"]
     # perform the actions
     for idx, pose in enumerate(poses):
-        move_group.moveToJointPosition(joint_names, pose, wait=False)
+        move_group.moveToJointPosition(joint_names, pose, wait=True)
         rospy.sleep(sampling_rate)
     # finished. cancel all movements
     move_group.get_move_action().cancel_all_goals()
@@ -94,10 +94,11 @@ if __name__ == '__main__':
                 pose_arr.append(joints_arr)
                 time.sleep(rate_in_seconds)
 
-                #
+                # keyboard interupt. stop collecting data and save to file
                 if interrupted:
                     print("\nSaving movement...\n")
                     save_movement(pose_arr, rate_in_seconds)
+                    interrupted = False
                     break
             
         # play back a movement from file
