@@ -8,6 +8,7 @@ import moveit_commander
 from moveit_commander.conversions import pose_to_list
 import moveit_msgs.msg
 from sensor_msgs.msg import JointState
+from std_msgs.msg import String
 
 def add_a_pose(pose_list, time_list, move_group):
     # arr to hold rounded values of joint angles
@@ -33,6 +34,11 @@ def save_movement(pose_list, time_list):
         outfile.write(json_object)
 
 def playback():
+
+    # publish command to start recoding UV data to csv
+    command_pub = rospy.Publisher('/command', String, queue_size=10)
+    command_pub.publish("start")
+
     move_group = MoveGroupInterface("arm_with_torso", "base_link")
     # create the joint names arr
     joint_names = ["torso_lift_joint", "shoulder_pan_joint",
@@ -52,6 +58,9 @@ def playback():
         rospy.sleep(durations[idx])
     # finished. cancel all movements
     move_group.get_move_action().cancel_all_goals()
+
+    # Stop writing to csv
+    command_pub.publish("stop")
 
 
 if __name__ == '__main__':
