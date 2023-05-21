@@ -107,4 +107,5 @@ In testing, this method appeared to have issues with large data sets. The max am
 If you find the issues calculating the path after making sure there are no obstructions, try slower sampling rates or or shorter recording times.
 
 
+## Activity Diagram
 <img width="578" alt="Screenshot 2023-05-21 at 1 32 33 AM" src="https://github.com/NashBernhart/fetch_playback/assets/99688169/23740fb0-dc5f-42ac-8d9c-e96edc876195">
