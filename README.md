@@ -105,3 +105,6 @@ Use RVIZ to confirm there are no obstacles in the octomap before trying to repla
 The MoveIt method being utilized to create the trajectory is called 'calculate_cartesian_path' that takes a list of poses.
 In testing, this method appeared to have issues with large data sets. The max amount of poses that were successful in testing was 15-20.
 If you find the issues calculating the path after making sure there are no obstructions, try slower sampling rates or or shorter recording times.
+
+
+<img width="578" alt="Screenshot 2023-05-21 at 1 32 33 AM" src="https://github.com/NashBernhart/fetch_playback/assets/99688169/23740fb0-dc5f-42ac-8d9c-e96edc876195">
