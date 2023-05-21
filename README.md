@@ -1,6 +1,7 @@
 # Fetch Playback
 
 fetch_playback is a ROS node to implement a 'programming by demonstration' functinoality on Fetch running Ubuntu 18 and ROS Melodic.
+This was inspired and draws from the fetch_pbd repo from Sarah Elliott at the University of Washington
 
 ## Requirements
 
