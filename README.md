@@ -17,7 +17,7 @@ catkin_create_package fetch_playback rospy
 catkin_make
 ```
 Place the python files in the src folder of your package
-Run catkin_make again and source your
+Run catkin_make again.
 
 ## Usage
 Launch the MoveGroup package on Fetch
